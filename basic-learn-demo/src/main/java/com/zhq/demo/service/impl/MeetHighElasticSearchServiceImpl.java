@@ -83,8 +83,8 @@ public class MeetHighElasticSearchServiceImpl implements MeetHighElasticSearchSe
     @Override
     @PostConstruct
     public void initEs() {
-        restClient = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http"),
-                        new HttpHost("localhost", 9201, "http")));
+        restClient = new RestHighLevelClient(RestClient.builder(new HttpHost("192.168.41.129", 9200, "http"),
+                        new HttpHost("192.168.41.129", 9201, "http")));
 
         log.info("ElasticSearch init in service.");
     }
@@ -565,8 +565,7 @@ public class MeetHighElasticSearchServiceImpl implements MeetHighElasticSearchSe
         }
 
         // 方式5：以key-value提供文档源，将转换为JSON格式
-        request =
-                        new UpdateRequest(indexName, document).doc("updated", new Date(), "reason", "Year update！");
+        request = new UpdateRequest(indexName, document).doc("updated", new Date(), "reason", "Year update！");
 
 
         /*

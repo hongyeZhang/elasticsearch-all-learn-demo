@@ -18,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/springboot/es/high")
 public class MeetHighElasticSearchController {
+
     @Autowired
     private MeetHighElasticSearchService meetHighElasticSearchService;
 
