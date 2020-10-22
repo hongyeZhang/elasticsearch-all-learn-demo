@@ -41,8 +41,8 @@ public class DemoController {
     @GetMapping("createIndex")
     public void createIndex() {
         try {
-            Map<String, Object> properties = new HashMap<String, Object>();
-            Map<String, Object> propertie = new HashMap<String, Object>();
+            Map<String, Object> properties = new HashMap<>();
+            Map<String, Object> propertie = new HashMap<>();
             propertie.put("type", "text"); // 类型
             // propertie.put("index",true);
             propertie.put("analyzer", "ik_max_word"); // 分词器
@@ -98,9 +98,8 @@ public class DemoController {
         Map<String, Object> data = new HashMap<>();
         data.put("title", title);
 
-        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> result = new ArrayList<>();
         SearchRequest searchRequest = new SearchRequest(indexName);
-        // searchRequest.types(indexName);
         queryBuilder(pageIndex, pageSize, data, indexName, searchRequest);
         try {
             SearchResponse response = highLevelClient.search(searchRequest, RequestOptions.DEFAULT);

@@ -14,8 +14,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 @Configuration
-public class ElasticsearchRestClient
-{
+public class ElasticsearchRestClient {
     private static final int ADDRESS_LENGTH = 2;
     private static final String HTTP_SCHEME = "http";
 
@@ -44,7 +43,7 @@ public class ElasticsearchRestClient
         if (address.length == ADDRESS_LENGTH) {
             String ip = address[0];
             int port = Integer.parseInt(address[1]);
-            System.err.println(ip+"+"+port);
+            System.err.println(ip + "+" + port);
             return new HttpHost(ip, port, HTTP_SCHEME);
         } else {
             return null;
