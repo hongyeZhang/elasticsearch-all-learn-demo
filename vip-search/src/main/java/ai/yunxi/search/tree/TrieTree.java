@@ -1,6 +1,7 @@
 package ai.yunxi.search.tree;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 class TrieNode {
     // 子节点
