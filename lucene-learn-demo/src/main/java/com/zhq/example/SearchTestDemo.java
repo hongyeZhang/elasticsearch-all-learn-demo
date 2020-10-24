@@ -1,16 +1,32 @@
 package com.zhq.example;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.NumericDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.junit.Test;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
@@ -18,9 +34,55 @@ import java.nio.file.Paths;
  */
 public class SearchTestDemo {
 
+    @Test
+    public void createIndex() throws IOException {
+        // 索引存放路径
+        Directory directory = FSDirectory.open(Paths.get("E:/Lucene/index"));
+        // 创建IKAnalzyer分析器
+        IKAnalyzer analyzer = new IKAnalyzer();
+        // 创建IndexWriterConfig
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        // 是否使用复合索引格式
+        iwc.setUseCompoundFile(true);
+        // 创建IndexWriter
+        IndexWriter indexWriter = new IndexWriter(directory, iwc);
+        // 原始文档的路径
+        File path = new File("E:/Lucene/data");
+        for (File file : path.listFiles()) {
+            // 创建Document对象
+            Document document = new Document();
 
+            FieldType fieldType = new FieldType();
+            fieldType.setIndexOptions(IndexOptions.DOCS);
+            fieldType.setStored(true);
+            // fieldType.setStoreTermVectors(false);
+            // fieldType.setStoreTermVectorPositions(false);
+            // 文件名称
+            document.add(new TextField("filename", file.getName(), Field.Store.YES));
+            // 文件内容
+            Field content = new TextField("content", FileUtils.readFileToString(file, "GBK"), Field.Store.YES);
+            document.add(content);
+            // 文件路径
+            document.add(new StoredField("path", file.getPath()));
+            // 文件大小
+            document.add(new NumericDocValuesField("size", FileUtils.sizeOf(file)));
+            // 写入索引
+            indexWriter.addDocument(document);
+        }
 
-    public void searchIndex() throws Exception {
+        // 写入完毕，清理工作
+        if (indexWriter != null) {
+            indexWriter.close();
+            indexWriter = null;
+        }
+    }
+
+    /**
+     * term query example
+     * @throws Exception
+     */
+    @Test
+    public void testTermQuery() throws Exception {
         // 索引存放路径
         Directory directory = FSDirectory.open(Paths.get("E:/Lucene/index"));
         // 创建IndexReader
@@ -43,6 +105,67 @@ public class SearchTestDemo {
         indexReader.close();
         directory.close();
     }
+
+    /**
+     * 布尔查询
+     * @throws Exception
+     */
+    @Test
+    public void testBooleanQuery() throws Exception {
+        Directory directory = FSDirectory.open(Paths.get("E:/Lucene/index"));
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        Term term1 = new Term("content", "考试");
+        Query query1 = new TermQuery(term1);
+        Term term2 = new Term("content", "风险");
+        Query query2 = new TermQuery(term2);
+
+        BooleanQuery bQuery = new BooleanQuery.Builder()
+                .add(query1, BooleanClause.Occur.MUST)
+                .add(query2, BooleanClause.Occur.MUST)
+                .build();
+        ScoreDoc[] hits = indexSearcher.search(bQuery, 10).scoreDocs;
+        for (ScoreDoc scoreDoc : hits) {
+            Document doc = indexSearcher.doc(scoreDoc.doc);
+            System.out.print(doc.get("filename") + ":    ");
+            System.out.println(doc.get("path"));
+        }
+        indexReader.close();
+        directory.close();
+    }
+
+
+    /**
+     * range query
+     * @throws Exception
+     */
+    @Test
+    public void testRangeQuery() throws Exception {
+        Directory directory = FSDirectory.open(Paths.get("E:/Lucene/index"));
+        IndexReader indexReader = DirectoryReader.open(directory);
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        Query rangeQuery = LongPoint.newRangeQuery("size", 0, 1000);
+        ScoreDoc[] hits = indexSearcher.search(rangeQuery, 10).scoreDocs;
+        for (ScoreDoc scoreDoc : hits) {
+            Document doc = indexSearcher.doc(scoreDoc.doc);
+            System.out.print(doc.get("filename") + ":    ");
+            System.out.println(doc.get("path"));
+        }
+        indexReader.close();
+        directory.close();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
